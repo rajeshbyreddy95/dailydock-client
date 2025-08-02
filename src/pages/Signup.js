@@ -31,7 +31,7 @@ function Signup() {
     }
 
     try {
-      const res = await axios.post('http://localhost:8070/signup', {
+      const res = await axios.post('https://dailydoc-server.onrender.com/signup', {
         fullName,
         email,
         password

@@ -11,7 +11,7 @@ const Profile = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `http://localhost:8070/profile?username=${username}`,
+          `https://dailydoc-server.onrender.com/profile?username=${username}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

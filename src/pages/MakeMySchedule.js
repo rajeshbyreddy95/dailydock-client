@@ -35,7 +35,7 @@ const MakeMySchedule = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8070/save-schedule", {
+      const response = await fetch("https://dailydoc-server.onrender.com/save-schedule", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -21,7 +21,7 @@ function Login() {
     setSuccess('');
 
     try {
-      const res = await axios.post('http://localhost:8070/login', formData);
+      const res = await axios.post('https://dailydoc-server.onrender.com/login', formData);
       setSuccess('Login successful!');
       localStorage.setItem('token', res.data.token)
       localStorage.setItem('username', res.data.email)

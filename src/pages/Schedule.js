@@ -20,7 +20,7 @@ const Schedule = () => {
       return;
     }
 
-    const response = await fetch('http://localhost:8070/schedule/view', {
+    const response = await fetch('https://dailydoc-server.onrender.com/schedule/view', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ const Schedule = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await fetch(`http://localhost:8070/schedule/update-status/${username}`, {
+      await fetch(`https://dailydoc-server.onrender.com/schedule/update-status/${username}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
