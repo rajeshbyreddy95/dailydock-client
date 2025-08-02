@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Schedule = () => {
   const username = localStorage.getItem("username");
@@ -7,18 +9,37 @@ const Schedule = () => {
   const [displayedTasks, setDisplayedTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [viewMode, setViewMode] = useState('today');
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
+  const [updatingIndex, setUpdatingIndex] = useState(null);
 
-  const today = new Date().toISOString().split("T")[0];
+  const getToday = () => new Date().toLocaleDateString('en-CA');
 
-  const fetchTasks = async (mode, date = '') => {
+  const getYesterday = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    return date.toLocaleDateString('en-CA');
+  };
+
+  const fetchTasks = async () => {
     try {
-      setLoading(true); // Start loading
+      setLoading(true);
       const token = localStorage.getItem("token");
+
       if (!token) {
-        alert("Please login to view your schedule.");
+        toast.warn("Please login to view your schedule.");
         navigate('/login');
         return;
+      }
+
+      let dateToSend = '';
+
+      if (viewMode === 'specific') {
+        if (!selectedDate || isNaN(Date.parse(selectedDate))) return;
+        dateToSend = selectedDate;
+      } else if (viewMode === 'today') {
+        dateToSend = getToday();
+      } else if (viewMode === 'previous') {
+        dateToSend = getYesterday();
       }
 
       const response = await fetch('https://dailydoc-server.onrender.com/schedule/view', {
@@ -27,7 +48,7 @@ const Schedule = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ username, mode, date })
+        body: JSON.stringify({ username, mode: 'specific', date: dateToSend }) // mode is always 'specific'
       });
 
       const data = await response.json();
@@ -35,23 +56,25 @@ const Schedule = () => {
       if (response.ok) {
         setDisplayedTasks(data.tasks || []);
       } else {
-        alert(data.message || "Failed to fetch schedule.");
+        toast.error(data.message || "Failed to fetch schedule.");
       }
     } catch (err) {
       console.error("Error loading schedule:", err);
+      toast.error("Something went wrong.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (viewMode === 'specific' && !selectedDate) return;
-    fetchTasks(viewMode, selectedDate);
+    fetchTasks();
   }, [viewMode, selectedDate]);
 
   const handleStatusChange = async (index) => {
+    setUpdatingIndex(index);
     const updatedTasks = [...displayedTasks];
-    updatedTasks[index].status = updatedTasks[index].status === 'completed' ? 'pending' : 'completed';
+    updatedTasks[index].status =
+      updatedTasks[index].status === 'completed' ? 'pending' : 'completed';
     setDisplayedTasks(updatedTasks);
 
     try {
@@ -66,29 +89,27 @@ const Schedule = () => {
       });
     } catch (err) {
       console.error("Failed to update status:", err);
+      toast.error("Failed to update task status.");
+    } finally {
+      setUpdatingIndex(null);
     }
   };
 
-  function getDuration(start, end) {
-  const [startH, startM] = start.split(':').map(Number);
-  const [endH, endM] = end.split(':').map(Number);
-  let startMinutes = startH * 60 + startM;
-  let endMinutes = endH * 60 + endM;
-
-  // If end time is less than start time, assume it's on the next day
-  if (endMinutes < startMinutes) {
-    endMinutes += 24 * 60;
-  }
-
-  const diff = endMinutes - startMinutes;
-  const hours = Math.floor(diff / 60);
-  const minutes = diff % 60;
-  return `${hours > 0 ? hours + 'h ' : ''}${minutes}m`;
-}
-
+  const getDuration = (start, end) => {
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    let startMinutes = startH * 60 + startM;
+    let endMinutes = endH * 60 + endM;
+    if (endMinutes < startMinutes) endMinutes += 24 * 60;
+    const diff = endMinutes - startMinutes;
+    const hours = Math.floor(diff / 60);
+    const minutes = diff % 60;
+    return `${hours > 0 ? hours + 'h ' : ''}${minutes}m`;
+  };
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
+      <ToastContainer />
       <nav className="mb-6 text-sm">
         <ol className="list-reset flex">
           <li><a href="/" className="hover:underline">Home</a></li>
@@ -112,16 +133,24 @@ const Schedule = () => {
         {/* Control Panel */}
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
           <button
-            onClick={() => setViewMode('today')}
+            onClick={() => {
+              const today = getToday();
+              setSelectedDate(today);
+              setViewMode('today');
+            }}
             className={`px-4 py-2 rounded-lg ${viewMode === 'today' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
           >
-            Today's Schedule
+            {`Schedule for Today`}
           </button>
           <button
-            onClick={() => setViewMode('previous')}
+            onClick={() => {
+              const yesterday = getYesterday();
+              setSelectedDate(yesterday);
+              setViewMode('previous');
+            }}
             className={`px-4 py-2 rounded-lg ${viewMode === 'previous' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
           >
-            View Previous Schedule
+            {`Schedule for Yesterday`}
           </button>
           <div className="flex items-center gap-2">
             <input
@@ -138,9 +167,7 @@ const Schedule = () => {
 
         {/* Table or Loader */}
         <h2 className="text-xl font-semibold mb-4">
-          {viewMode === 'today' && `Today's Schedule `}
-          {viewMode === 'previous' && 'Previous Schedules'}
-          {viewMode === 'specific' && `Schedule for ${selectedDate}`}
+          {`Schedule for ${selectedDate || getToday()}`}
         </h2>
 
         {loading ? (
@@ -164,7 +191,10 @@ const Schedule = () => {
               </thead>
               <tbody>
                 {displayedTasks.map((task, idx) => (
-                  <tr key={idx} className="border-b border-white/10">
+                  <tr
+                    key={idx}
+                    className={`border-b border-white/10 ${task.status === 'completed' ? 'bg-green-500/10' : ''}`}
+                  >
                     <td className="py-2 px-4">{task.task}</td>
                     <td className="py-2 px-4">{task.startTime}</td>
                     <td className="py-2 px-4">{task.endTime}</td>
@@ -176,6 +206,7 @@ const Schedule = () => {
                       <input
                         type="checkbox"
                         checked={task.status === 'completed'}
+                        disabled={updatingIndex === idx}
                         onChange={() => handleStatusChange(idx)}
                         className="w-5 h-5"
                       />
