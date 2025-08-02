@@ -87,7 +87,7 @@ function Home() {
       )}
 
       <footer className="mt-20 text-sm text-white/70">
-        © 2025 TaskPulse | Built with ❤️ by Rajesh and Yamuna
+        © 2025 DilyDock | Built with ❤️ by Rajesh and Yamuna
       </footer>
     </div>
   );
