@@ -70,15 +70,22 @@ const Schedule = () => {
   };
 
   function getDuration(start, end) {
-    const [startH, startM] = start.split(':').map(Number);
-    const [endH, endM] = end.split(':').map(Number);
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    const diff = endMinutes - startMinutes;
-    const hours = Math.floor(diff / 60);
-    const minutes = diff % 60;
-    return `${hours > 0 ? hours + 'h ' : ''}${minutes}m`;
+  const [startH, startM] = start.split(':').map(Number);
+  const [endH, endM] = end.split(':').map(Number);
+  let startMinutes = startH * 60 + startM;
+  let endMinutes = endH * 60 + endM;
+
+  // If end time is less than start time, assume it's on the next day
+  if (endMinutes < startMinutes) {
+    endMinutes += 24 * 60;
   }
+
+  const diff = endMinutes - startMinutes;
+  const hours = Math.floor(diff / 60);
+  const minutes = diff % 60;
+  return `${hours > 0 ? hours + 'h ' : ''}${minutes}m`;
+}
+
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
