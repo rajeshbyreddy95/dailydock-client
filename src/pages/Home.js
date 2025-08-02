@@ -45,14 +45,18 @@ function Home() {
         Plan your day. Stay on track. Get email notifications right when it's time for your next task. Boost your productivity with ease.
       </p>
       <div className="flex gap-4">
+                  <a href={token ? `/my-schedule` : `login`}>
         <button
           className="bg-white text-indigo-600 px-6 py-2 rounded-2xl font-semibold shadow-md hover:bg-gray-100 transition"
         >
-          <a href={token ? `/my-schedule` : `login`}>Try It</a>
+Try It
         </button>
+        </a>
+        <a href="https://github.com/rajeshbyreddy95/dailydock-client">
         <button className="border border-white px-6 py-2 rounded-2xl font-semibold hover:bg-white hover:text-indigo-600 transition">
           GitHub Repo
         </button>
+        </a>
       </div>
 
       {/* Feature Cards */}
