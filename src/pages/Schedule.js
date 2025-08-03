@@ -97,7 +97,7 @@ const Schedule = () => {
   const taskDelete = async (taskId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch('https://dailydoc-server.onrender.com/api/taskdelete', {
+      const res = await fetch('https://dailydoc-server.onrender.com/api/taskdelete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
