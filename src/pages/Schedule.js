@@ -72,47 +72,47 @@ const Schedule = () => {
 
 
 const handleStatusChange = async (taskId) => {
-  setUpdatingIndex(taskId); // Optional, for loading state
+  // setUpdatingIndex(taskId); // Optional, for loading state
   console.log(taskId);
   
-  const updatedTasks = displayedTasks.map(task => {
-    if (task._id === taskId) {
-      return {
-        ...task,
-        status: task.status === 'completed' ? 'pending' : 'completed',
-      };
-    }
-    return task;
-  });
+  // const updatedTasks = displayedTasks.map(task => {
+  //   if (task._id === taskId) {
+  //     return {
+  //       ...task,
+  //       status: task.status === 'completed' ? 'pending' : 'completed',
+  //     };
+  //   }
+  //   return task;
+  // });
 
-  setDisplayedTasks(updatedTasks);
+  // setDisplayedTasks(updatedTasks);
 
-  const changedTask = updatedTasks.find(t => t._id === taskId);
+  // const changedTask = updatedTasks.find(t => t._id === taskId);
 
-  try {
-    const token = localStorage.getItem("token");
+  // try {
+  //   const token = localStorage.getItem("token");
 
-    await axios.put(
-      `https://dailydoc-server.onrender.com/schedule/update-status/${username}`,
-      {
-        taskId,
-        status: changedTask.status
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
+  //   await axios.put(
+  //     `https://dailydoc-server.onrender.com/schedule/update-status/${username}`,
+  //     {
+  //       taskId,
+  //       status: changedTask.status
+  //     },
+  //     {
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${token}`
+  //       }
+  //     }
+  //   );
 
-    toast.success("Task status updated.");
-  } catch (err) {
-    console.error("❌ Failed to update status:", err);
-    toast.error("Failed to update task status.");
-  } finally {
-    setUpdatingIndex(null);
-  }
+  //   toast.success("Task status updated.");
+  // } catch (err) {
+  //   console.error("❌ Failed to update status:", err);
+  //   toast.error("Failed to update task status.");
+  // } finally {
+  //   setUpdatingIndex(null);
+  // }
 };
 
 
@@ -120,30 +120,30 @@ const handleStatusChange = async (taskId) => {
   const taskDelete = async (taskId) => {
     console.log(taskId);
     
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(
-        `https://dailydoc-server.onrender.com/schedule/taskdelete`,
-        { username, taskId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log(res.data);
+    // try {
+    //   const token = localStorage.getItem("token");
+    //   const res = await axios.post(
+    //     `https://dailydoc-server.onrender.com/schedule/taskdelete`,
+    //     { username, taskId },
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //     }
+    //   );
+    //   console.log(res.data);
       
 
-      if (res.status === 200) {
-        setDisplayedTasks(res.data.tasks);
-        toast.success("Task deleted successfully.");
-      } else {
-        toast.error(res.data.message || "Failed to delete task.");
-      }
-    } catch (error) {
-      console.error("❌ Error deleting task:", error);
-      toast.error("Something went wrong while deleting.");
-    }
+    //   if (res.status === 200) {
+    //     setDisplayedTasks(res.data.tasks);
+    //     toast.success("Task deleted successfully.");
+    //   } else {
+    //     toast.error(res.data.message || "Failed to delete task.");
+    //   }
+    // } catch (error) {
+    //   console.error("❌ Error deleting task:", error);
+    //   toast.error("Something went wrong while deleting.");
+    // }
   };
 
   const getDuration = (start, end) => {
