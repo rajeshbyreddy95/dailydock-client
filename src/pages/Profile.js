@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const username = localStorage.getItem("username");
   const [stats, setStats] = useState({ total: 0, completed: 0 });
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -37,14 +38,21 @@ const Profile = () => {
     fetchStats();
   }, [username]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+    navigate("/login"); // or navigate('/') depending on your app structure
+  };
+
   if (loading) return <div className="text-white p-10">Loading...</div>;
 
   const progress =
     stats.total === 0 ? 0 : Math.round((stats.completed / stats.total) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center px-4 py-10">
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-full max-w-3xl shadow-lg border border-white/10 text-white">
+
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
             <h2 className="text-2xl font-bold mb-1">👋 Welcome Back,</h2>
@@ -58,11 +66,11 @@ const Profile = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-2 gap-6 my-8">
-          <div className="bg-purple-600/20 p-6 rounded-xl text-center">
+          <div className="bg-purple-600/20 p-6 border border-red-400 shadow-lg rounded-xl text-center">
             <h3 className="text-sm uppercase tracking-widest text-purple-300">Total Tasks</h3>
             <p className="text-3xl font-bold">{stats.total}</p>
           </div>
-          <div className="bg-green-600/20 p-6 rounded-xl text-center">
+          <div className="bg-green-600/20 p-6 border border-red-400 shadow-lg rounded-xl text-center">
             <h3 className="text-sm uppercase tracking-widest text-green-300">Completed</h3>
             <p className="text-3xl font-bold">{stats.completed}</p>
           </div>
@@ -82,14 +90,22 @@ const Profile = () => {
           </p>
         </div>
 
-        <div className="mt-6 text-center">
+        {/* Buttons */}
+        <div className="mt-8 flex justify-center gap-4 flex-wrap">
           <Link
             to="/my-schedule"
-            className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition duration-200"
+            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition duration-200"
           >
             📋 View Your Tasks
           </Link>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition duration-200"
+          >
+            🔓 Logout
+          </button>
         </div>
+
       </div>
     </div>
   );

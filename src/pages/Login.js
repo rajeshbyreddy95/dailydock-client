@@ -6,7 +6,8 @@ function Login() {
   const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -19,22 +20,23 @@ function Login() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
     try {
       const res = await axios.post('https://dailydoc-server.onrender.com/login', formData);
       setSuccess('Login successful!');
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('username', res.data.email)
-      navigate('/profile')
-
-      // optionally store token: localStorage.setItem('token', res.data.token);
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('username', res.data.email);
+      navigate('/profile');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-red-400 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center px-4">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full text-white">
         <h2 className="text-3xl font-bold mb-6 text-center">Login to Your Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,11 +76,17 @@ function Login() {
               Don’t have an account? Sign up
             </a>
           </div>
+
           <button
             type="submit"
-            className="w-full mt-4 bg-white text-purple-700 font-semibold py-2 rounded-lg hover:bg-gray-100 transition"
+            disabled={loading}
+            className={`w-full mt-4 font-semibold py-2 rounded-lg transition ${
+              loading
+                ? 'bg-white/40 text-white cursor-not-allowed'
+                : 'bg-white text-purple-700 hover:bg-gray-100'
+            }`}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

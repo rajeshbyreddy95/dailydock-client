@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 
 const Schedule = () => {
   const username = localStorage.getItem("username");
@@ -32,7 +33,6 @@ const Schedule = () => {
       }
 
       let dateToSend = '';
-
       if (viewMode === 'specific') {
         if (!selectedDate || isNaN(Date.parse(selectedDate))) return;
         dateToSend = selectedDate;
@@ -48,11 +48,10 @@ const Schedule = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ username, mode: 'specific', date: dateToSend }) // mode is always 'specific'
+        body: JSON.stringify({ username, mode: 'specific', date: dateToSend })
       });
 
       const data = await response.json();
-
       if (response.ok) {
         setDisplayedTasks(data.tasks || []);
       } else {
@@ -95,6 +94,31 @@ const Schedule = () => {
     }
   };
 
+  const taskDelete = async (taskId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `http://localhost:8070/taskdelete/${username}`,
+        { "taskId":taskId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        setDisplayedTasks(res.data.tasks);
+        toast.success("Task deleted successfully.");
+      } else {
+        toast.error(res.data.message || "Failed to delete task.");
+      }
+    } catch (error) {
+      console.error("❌ Error deleting task:", error);
+      toast.error("Something went wrong while deleting.");
+    }
+  };
+
   const getDuration = (start, end) => {
     const [startH, startM] = start.split(':').map(Number);
     const [endH, endM] = end.split(':').map(Number);
@@ -108,7 +132,7 @@ const Schedule = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
+    <div className="min-h-screen p-4 md:p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
       <ToastContainer />
       <nav className="mb-6 text-sm">
         <ol className="list-reset flex">
@@ -118,19 +142,18 @@ const Schedule = () => {
         </ol>
       </nav>
 
-      <div className="max-w-6xl mx-auto bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl">
-        <h1 className="text-3xl font-bold mb-4">
+      <div className="max-w-6xl mx-auto bg-white/10 backdrop-blur-md p-4 md:p-6 rounded-2xl shadow-xl">
+        <h1 className="text-2xl md:text-3xl font-bold mb-4">
           Hello, <a href="/profile" className='underline text-blue-300'>{username}</a>
         </h1>
 
-        <p className="mb-6">
+        <p className="mb-6 text-sm md:text-base">
           Want to add a new task?{' '}
           <Link to="/make-my-schedule" className="underline hover:text-purple-300">
             Click here
           </Link>
         </p>
 
-        {/* Control Panel */}
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
           <button
             onClick={() => {
@@ -138,9 +161,9 @@ const Schedule = () => {
               setSelectedDate(today);
               setViewMode('today');
             }}
-            className={`px-4 py-2 rounded-lg ${viewMode === 'today' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
+            className={`px-4 py-2 rounded-lg text-sm ${viewMode === 'today' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
           >
-            {`Schedule for Today`}
+            Schedule for Today
           </button>
           <button
             onClick={() => {
@@ -148,9 +171,9 @@ const Schedule = () => {
               setSelectedDate(yesterday);
               setViewMode('previous');
             }}
-            className={`px-4 py-2 rounded-lg ${viewMode === 'previous' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
+            className={`px-4 py-2 rounded-lg text-sm ${viewMode === 'previous' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
           >
-            {`Schedule for Yesterday`}
+            Schedule for Yesterday
           </button>
           <div className="flex items-center gap-2">
             <input
@@ -160,14 +183,13 @@ const Schedule = () => {
                 setSelectedDate(e.target.value);
                 setViewMode('specific');
               }}
-              className="px-4 py-2 rounded-lg bg-white/20 text-white focus:outline-none"
+              className="px-4 py-2 rounded-lg bg-white/20 text-white text-sm focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Table or Loader */}
         <h2 className="text-xl font-semibold mb-4">
-          {`Schedule for ${selectedDate || getToday()}`}
+          Schedule for {selectedDate || getToday()}
         </h2>
 
         {loading ? (
@@ -177,45 +199,59 @@ const Schedule = () => {
         ) : displayedTasks.length === 0 ? (
           <p className="text-white/80">No tasks found.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-white text-left">
-              <thead>
-                <tr className="bg-white/20">
-                  <th className="py-2 px-4">Task</th>
-                  <th className="py-2 px-4">Start Time</th>
-                  <th className="py-2 px-4">End Time</th>
-                  <th className="py-2 px-4">Duration</th>
-                  <th className="py-2 px-4">Status</th>
-                  <th className="py-2 px-4">Toggle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedTasks.map((task, idx) => (
-                  <tr
-                    key={idx}
-                    className={`border-b border-white/10 ${task.status === 'completed' ? 'bg-green-500/10' : ''}`}
-                  >
-                    <td className="py-2 px-4">{task.task}</td>
-                    <td className="py-2 px-4">{task.startTime}</td>
-                    <td className="py-2 px-4">{task.endTime}</td>
-                    <td className="py-2 px-4">{getDuration(task.startTime, task.endTime)}</td>
-                    <td className="py-2 px-4">
-                      {task.status === 'completed' ? '✅ Completed' : '❌ Pending'}
-                    </td>
-                    <td className="py-2 px-4">
-                      <input
-                        type="checkbox"
-                        checked={task.status === 'completed'}
-                        disabled={updatingIndex === idx}
-                        onChange={() => handleStatusChange(idx)}
-                        className="w-5 h-5"
-                      />
-                    </td>
+          <>
+            <div className="w-full overflow-x-auto rounded-xl border border-white/20">
+              <table className="w-full min-w-[600px] text-white text-xs md:text-sm text-left table-auto">
+                <thead>
+                  <tr className="bg-white/20">
+                    <th className="py-3 px-2 md:px-4">Task</th>
+                    <th className="py-3 px-2 md:px-4">Start</th>
+                    <th className="py-3 px-2 md:px-4">End</th>
+                    <th className="py-3 px-2 md:px-4">Duration</th>
+                    <th className="py-3 px-2 md:px-4">Status</th>
+                    <th className="py-3 px-2 md:px-4">Toggle</th>
+                    <th className="py-3 px-2 md:px-4">Delete</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {displayedTasks.map((task, idx) => (
+                    <tr
+                      key={idx}
+                      className={`border-b border-white/10 ${task.status === 'completed' ? 'bg-green-500/10' : ''}`}
+                    >
+                      <td className="py-3 px-2 md:px-4">{task.task}</td>
+                      <td className="py-3 px-2 md:px-4">{task.startTime}</td>
+                      <td className="py-3 px-2 md:px-4">{task.endTime}</td>
+                      <td className="py-3 px-2 md:px-4">{getDuration(task.startTime, task.endTime)}</td>
+                      <td className="py-3 px-2 md:px-4">
+                        {task.status === 'completed' ? '✅ Completed' : '❌ Pending'}
+                      </td>
+                      <td className="py-3 px-2 md:px-4">
+                        <input
+                          type="checkbox"
+                          checked={task.status === 'completed'}
+                          disabled={updatingIndex === idx}
+                          onChange={() => handleStatusChange(idx)}
+                          className="w-4 h-4"
+                        />
+                      </td>
+                      <td className="py-3 px-2 md:px-4">
+                        <button
+                          className="text-xs md:text-sm px-3 py-1 rounded bg-red-500 hover:bg-red-600"
+                          onClick={() => taskDelete(idx)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-xs text-white/70 md:hidden italic text-center">
+              ← Scroll to view more →
+            </p>
+          </>
         )}
       </div>
     </div>
