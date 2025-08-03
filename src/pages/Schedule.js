@@ -73,7 +73,8 @@ const Schedule = () => {
 
 const handleStatusChange = async (taskId) => {
   setUpdatingIndex(taskId); // Optional, for loading state
-
+  console.log(taskId);
+  
   const updatedTasks = displayedTasks.map(task => {
     if (task._id === taskId) {
       return {
