@@ -98,7 +98,7 @@ const Schedule = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `http://localhost:8070/taskdelete/${username}`,
+        `https://dailydoc-server.onrender.com/taskdelete/${username}`,
         { "taskId":taskId },
         {
           headers: {
