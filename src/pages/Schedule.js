@@ -239,6 +239,7 @@ const handleStatusChange = async (taskId) => {
                     <th className="py-3 px-2 md:px-4">Start</th>
                     <th className="py-3 px-2 md:px-4">End</th>
                     <th className="py-3 px-2 md:px-4">Duration</th>
+                    <th className="py-3 px-2 md:px-4">Task Id</th>
                     <th className="py-3 px-2 md:px-4">Status</th>
                     <th className="py-3 px-2 md:px-4">Toggle</th>
                     <th className="py-3 px-2 md:px-4">Delete</th>
@@ -254,6 +255,8 @@ const handleStatusChange = async (taskId) => {
                       <td className="py-3 px-2 md:px-4">{task.startTime}</td>
                       <td className="py-3 px-2 md:px-4">{task.endTime}</td>
                       <td className="py-3 px-2 md:px-4">{getDuration(task.startTime, task.endTime)}</td>
+                      <td className="py-3 px-2 md:px-4">{task._id}</td>
+
                       <td className="py-3 px-2 md:px-4">
                         {task.status === 'completed' ? '✅ Completed' : '❌ Pending'}
                       </td>
