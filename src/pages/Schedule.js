@@ -117,6 +117,8 @@ const handleStatusChange = async (taskId) => {
 
 
   const taskDelete = async (taskId) => {
+    console.log(taskId);
+    
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
