@@ -128,6 +128,8 @@ const handleStatusChange = async (taskId) => {
           },
         }
       );
+      console.log(res.data);
+      
 
       if (res.status === 200) {
         setDisplayedTasks(res.data.tasks);
