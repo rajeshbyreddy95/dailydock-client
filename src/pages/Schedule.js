@@ -69,7 +69,9 @@ const Schedule = () => {
     fetchTasks();
   }, [viewMode, selectedDate]);
 
-  const handleStatusChange = async (taskId) => {
+ import axios from "axios";
+
+const handleStatusChange = async (taskId) => {
   setUpdatingIndex(taskId); // Optional, for loading state
 
   const updatedTasks = displayedTasks.map(task => {
@@ -88,21 +90,30 @@ const Schedule = () => {
 
   try {
     const token = localStorage.getItem("token");
-    await fetch(`https://dailydoc-server.onrender.com/schedule/update-status/${username}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+
+    await axios.put(
+      `https://dailydoc-server.onrender.com/schedule/update-status/${username}`,
+      {
+        taskId,
+        status: changedTask.status
       },
-      body: JSON.stringify({ taskId, status: changedTask.status }),
-    });
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    toast.success("Task status updated.");
   } catch (err) {
-    console.error("Failed to update status:", err);
+    console.error("❌ Failed to update status:", err);
     toast.error("Failed to update task status.");
   } finally {
     setUpdatingIndex(null);
   }
 };
+
 
 
   const taskDelete = async (taskId) => {
