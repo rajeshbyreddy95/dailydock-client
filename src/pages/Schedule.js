@@ -42,7 +42,7 @@ const Schedule = () => {
         dateToSend = getYesterday();
       }
 
-      const response = await fetch('https://dailydoc-server.onrender.com/schedule/view', {
+      const response = await fetch('https://dailydoc-server.onrender.com/api/schedule/view', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ const Schedule = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await fetch(`https://dailydoc-server.onrender.com/schedule/update-status/${username}`, {
+      await fetch(`https://dailydoc-server.onrender.com/api/schedule/update-status/${username}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -97,17 +97,14 @@ const Schedule = () => {
   const taskDelete = async (taskId) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post(
-        `https://dailydoc-server.onrender.com/taskdelete/`,
-        { "taskId":taskId,
-          "username": username
-         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch('https://dailydoc-server.onrender.com/api/taskdelete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ username, taskId })
+      });
 
       if (res.status === 200) {
         setDisplayedTasks(res.data.tasks);
