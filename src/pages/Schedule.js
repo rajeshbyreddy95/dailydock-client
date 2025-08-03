@@ -69,30 +69,41 @@ const Schedule = () => {
     fetchTasks();
   }, [viewMode, selectedDate]);
 
-  const handleStatusChange = async (index) => {
-    setUpdatingIndex(index);
-    const updatedTasks = [...displayedTasks];
-    updatedTasks[index].status =
-      updatedTasks[index].status === 'completed' ? 'pending' : 'completed';
-    setDisplayedTasks(updatedTasks);
+  const handleStatusChange = async (taskId) => {
+  setUpdatingIndex(taskId); // Optional, for loading state
 
-    try {
-      const token = localStorage.getItem("token");
-      await fetch(`https://dailydoc-server.onrender.com/schedule/update-status/${username}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ index, status: updatedTasks[index].status }),
-      });
-    } catch (err) {
-      console.error("Failed to update status:", err);
-      toast.error("Failed to update task status.");
-    } finally {
-      setUpdatingIndex(null);
+  const updatedTasks = displayedTasks.map(task => {
+    if (task._id === taskId) {
+      return {
+        ...task,
+        status: task.status === 'completed' ? 'pending' : 'completed',
+      };
     }
-  };
+    return task;
+  });
+
+  setDisplayedTasks(updatedTasks);
+
+  const changedTask = updatedTasks.find(t => t._id === taskId);
+
+  try {
+    const token = localStorage.getItem("token");
+    await fetch(`https://dailydoc-server.onrender.com/schedule/update-status/${username}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ taskId, status: changedTask.status }),
+    });
+  } catch (err) {
+    console.error("Failed to update status:", err);
+    toast.error("Failed to update task status.");
+  } finally {
+    setUpdatingIndex(null);
+  }
+};
+
 
   const taskDelete = async (taskId) => {
     try {
@@ -232,7 +243,7 @@ const Schedule = () => {
                           type="checkbox"
                           checked={task.status === 'completed'}
                           disabled={updatingIndex === idx}
-                          onChange={() => handleStatusChange(idx)}
+                          onChange={() => handleStatusChange(task._id)}
                           className="w-4 h-4"
                         />
                       </td>
