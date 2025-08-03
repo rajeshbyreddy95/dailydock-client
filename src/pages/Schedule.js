@@ -98,8 +98,10 @@ const Schedule = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `https://dailydoc-server.onrender.com/taskdelete/${username}`,
-        { "taskId":taskId },
+        `https://dailydoc-server.onrender.com/taskdelete/`,
+        { "taskId":taskId,
+          "username": username
+         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
