@@ -34,7 +34,10 @@ const Schedule = () => {
 
       let dateToSend = '';
       if (viewMode === 'specific') {
-        if (!selectedDate || isNaN(Date.parse(selectedDate))) return;
+        if (viewMode === 'specific' && (!selectedDate || isNaN(Date.parse(selectedDate)))) {
+  toast.warn("Please select a valid date.");
+  return;
+}
         dateToSend = selectedDate;
       } else if (viewMode === 'today') {
         dateToSend = getToday();
@@ -43,13 +46,14 @@ const Schedule = () => {
       }
 
       const response = await fetch('https://dailydoc-server.onrender.com/schedule/view', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ username, mode: 'specific', date: dateToSend })
-      });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({ username, mode: viewMode, date: dateToSend })
+});
+
 
       const data = await response.json();
       if (response.ok) {
