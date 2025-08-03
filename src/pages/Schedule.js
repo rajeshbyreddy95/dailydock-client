@@ -120,7 +120,7 @@ const handleStatusChange = async (taskId) => {
   const taskDelete = async (taskId) => {
     console.log(taskId);
     try {
-      const response = await axios.post(`https://dailydoc-server.onrender.com/schedule/taskdelete`,{"username":username,"taskId" :taskId})
+      const response = await axios.post(`https://dailydoc-server.onrender.com/schedule/taskdelete`)
       console.log(response.data);
       
     } catch (error) {
