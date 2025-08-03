@@ -35,7 +35,7 @@ function Signup() {
     }
 
     try {
-      await axios.post('https://dailydoc-server.onrender.com/signup', {
+      await axios.post('https://dailydoc-server.onrender.com/auth/signup', {
         fullName,
         email,
         password
