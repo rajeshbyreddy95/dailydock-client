@@ -13,12 +13,9 @@ const Schedule = () => {
   const [loading, setLoading] = useState(false);
   const [updatingIndex, setUpdatingIndex] = useState(null);
 
-  const getToday = () => new Date().toLocaleDateString('en-CA');
-
-  const getYesterday = () => {
-    const date = new Date();
-    date.setDate(date.getDate() - 1);
-    return date.toLocaleDateString('en-CA');
+  const normalizeDate = (dateStr) => {
+    const dateObj = new Date(dateStr);
+    return dateObj.toISOString().split("T")[0];
   };
 
   const fetchTasks = async () => {
@@ -34,26 +31,25 @@ const Schedule = () => {
 
       let dateToSend = '';
       if (viewMode === 'specific') {
-        if (viewMode === 'specific' && (!selectedDate || isNaN(Date.parse(selectedDate)))) {
-  toast.warn("Please select a valid date.");
-  return;
-}
-        dateToSend = selectedDate;
+        if (!selectedDate || isNaN(Date.parse(selectedDate))) {
+          toast.warn("Please select a valid date.");
+          return;
+        }
+        dateToSend = normalizeDate(selectedDate);
       } else if (viewMode === 'today') {
-        dateToSend = getToday();
+        dateToSend = normalizeDate(new Date());
       } else if (viewMode === 'previous') {
-        dateToSend = getYesterday();
+        dateToSend = normalizeDate(new Date(new Date().setDate(new Date().getDate() - 1)));
       }
 
       const response = await fetch('https://dailydoc-server.onrender.com/schedule/view', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`
-  },
-  body: JSON.stringify({ username, mode: viewMode, date: dateToSend })
-});
-
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ username, mode: viewMode, date: dateToSend })
+      });
 
       const data = await response.json();
       if (response.ok) {
@@ -70,60 +66,53 @@ const Schedule = () => {
   };
 
   useEffect(() => {
-    fetchTasks();
+    if (viewMode === 'specific' && selectedDate) {
+      fetchTasks();
+    } else if (viewMode !== 'specific') {
+      fetchTasks();
+    }
   }, [viewMode, selectedDate]);
 
+  const handleStatusChange = async (taskId) => {
+    setUpdatingIndex(taskId);
 
-
-const handleStatusChange = async (taskId) => {
-  setUpdatingIndex(taskId); // Optional, for loading state
-  console.log(taskId);
-  
-  const updatedTasks = displayedTasks.map(task => {
-    if (task._id === taskId) {
-      return {
-        ...task,
-        status: task.status === 'completed' ? 'pending' : 'completed',
-      };
-    }
-    return task;
-  });
-
-  setDisplayedTasks(updatedTasks);
-
-  const changedTask = updatedTasks.find(t => t._id === taskId);
-
-  try {
-    const token = localStorage.getItem("token");
-
-    await axios.put(
-      `https://dailydoc-server.onrender.com/schedule/update-status/${username}`,
-      {
-        taskId,
-        status: changedTask.status
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
+    const updatedTasks = displayedTasks.map(task => {
+      if (task._id === taskId) {
+        return {
+          ...task,
+          status: task.status === 'completed' ? 'pending' : 'completed',
+        };
       }
-    );
+      return task;
+    });
 
-    toast.success("Task status updated.");
-  } catch (err) {
-    console.error("❌ Failed to update status:", err);
-    toast.error("Failed to update task status.");
-  } finally {
-    setUpdatingIndex(null);
-  }
-};
+    setDisplayedTasks(updatedTasks);
+    const changedTask = updatedTasks.find(t => t._id === taskId);
 
+    try {
+      const token = localStorage.getItem("token");
 
+      await axios.put(
+        `https://dailydoc-server.onrender.com/schedule/update-status/${username}`,
+        { taskId, status: changedTask.status },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      toast.success("Task status updated.");
+    } catch (err) {
+      console.error("❌ Failed to update status:", err);
+      toast.error("Failed to update task status.");
+    } finally {
+      setUpdatingIndex(null);
+    }
+  };
 
   const taskDelete = async (taskId) => {
-    console.log(taskId);
-    
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
@@ -135,8 +124,6 @@ const handleStatusChange = async (taskId) => {
           },
         }
       );
-      console.log(res.data);
-      
 
       if (res.status === 200) {
         setDisplayedTasks(res.data.tasks);
@@ -188,8 +175,7 @@ const handleStatusChange = async (taskId) => {
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
           <button
             onClick={() => {
-              const today = getToday();
-              setSelectedDate(today);
+              setSelectedDate(normalizeDate(new Date()));
               setViewMode('today');
             }}
             className={`px-4 py-2 rounded-lg text-sm ${viewMode === 'today' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
@@ -198,8 +184,9 @@ const handleStatusChange = async (taskId) => {
           </button>
           <button
             onClick={() => {
-              const yesterday = getYesterday();
-              setSelectedDate(yesterday);
+              const yesterday = new Date();
+              yesterday.setDate(yesterday.getDate() - 1);
+              setSelectedDate(normalizeDate(yesterday));
               setViewMode('previous');
             }}
             className={`px-4 py-2 rounded-lg text-sm ${viewMode === 'previous' ? 'bg-white text-purple-700' : 'bg-white/30'}`}
@@ -220,7 +207,7 @@ const handleStatusChange = async (taskId) => {
         </div>
 
         <h2 className="text-xl font-semibold mb-4">
-          Schedule for {selectedDate || getToday()}
+          Schedule for {selectedDate || normalizeDate(new Date())}
         </h2>
 
         {loading ? (
@@ -246,9 +233,9 @@ const handleStatusChange = async (taskId) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayedTasks.map((task, idx) => (
+                  {displayedTasks.map((task) => (
                     <tr
-                      key={idx}
+                      key={task._id}
                       className={`border-b border-white/10 ${task.status === 'completed' ? 'bg-green-500/10' : ''}`}
                     >
                       <td className="py-3 px-2 md:px-4">{task.task}</td>
@@ -256,7 +243,6 @@ const handleStatusChange = async (taskId) => {
                       <td className="py-3 px-2 md:px-4">{task.endTime}</td>
                       <td className="py-3 px-2 md:px-4">{getDuration(task.startTime, task.endTime)}</td>
                       <td className="py-3 px-2 md:px-4">{task._id}</td>
-
                       <td className="py-3 px-2 md:px-4">
                         {task.status === 'completed' ? '✅ Completed' : '❌ Pending'}
                       </td>
@@ -264,7 +250,7 @@ const handleStatusChange = async (taskId) => {
                         <input
                           type="checkbox"
                           checked={task.status === 'completed'}
-                          disabled={updatingIndex === idx}
+                          disabled={updatingIndex === task._id}
                           onChange={() => handleStatusChange(task._id)}
                           className="w-4 h-4"
                         />
