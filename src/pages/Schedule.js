@@ -238,7 +238,7 @@ const Schedule = () => {
                       <td className="py-3 px-2 md:px-4">
                         <button
                           className="text-xs md:text-sm px-3 py-1 rounded bg-red-500 hover:bg-red-600"
-                          onClick={() => taskDelete(idx)}
+                          onClick={() => taskDelete(task._id)}
                         >
                           Delete
                         </button>
