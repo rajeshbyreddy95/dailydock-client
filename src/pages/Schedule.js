@@ -119,12 +119,30 @@ const handleStatusChange = async (taskId) => {
 
   const taskDelete = async (taskId) => {
     console.log(taskId);
+    
     try {
-      const response = await axios.post(`https://dailydoc-server.onrender.com/schedule/taskdelete/`)
-      console.log(response.data);
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `https://dailydoc-server.onrender.com/schedule/taskdelete`,
+        { username, taskId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(res.data);
       
+
+      if (res.status === 200) {
+        setDisplayedTasks(res.data.tasks);
+        toast.success("Task deleted successfully.");
+      } else {
+        toast.error(res.data.message || "Failed to delete task.");
+      }
     } catch (error) {
-      
+      console.error("❌ Error deleting task:", error);
+      toast.error("Something went wrong while deleting.");
     }
   };
 
